@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "37869761724",
+    "project_id": "caisse-manager",
+    "storage_bucket": "caisse-manager.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:37869761724:android:84a9749d24fe08f8df0cb9",
+        "android_client_info": {
+          "package_name": "com.example.caissemanager"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDdPRh0nEWjlLKaPDYApA1OEdbRpWQq6tw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

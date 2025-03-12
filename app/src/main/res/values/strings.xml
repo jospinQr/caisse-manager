@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">CaisseManager</string>
+    <string name="generic_error">Erreur generique</string>
+</resources>
