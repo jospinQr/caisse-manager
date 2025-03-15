@@ -1,17 +1,14 @@
 package com.example.caissemanager.ui.screen.compte
 
 import android.content.Context
-import android.widget.Toast
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.caissemanager.data.repository.CompteRepository
 import com.example.caissemanager.domain.model.Compte
-import com.example.caissemanager.domain.model.TYPECAISSE
 import com.example.caissemanager.domain.model.TYPECOMPTE
 import com.example.caissemanager.utils.Result
 import com.example.caissemanager.utils.SnackbarManager
-import dagger.hilt.android.HiltAndroidApp
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -39,6 +36,7 @@ class CompteViewModel @Inject constructor(
     private val _devise get() = uistate.value.devise
     private val _libelle get() = uistate.value.libelle
     private val _typeCompte get() = uistate.value.typeCompte
+    private val _updateCompte get() = uistate.value.updateCompte
 
     private val _selectedOption = MutableStateFlow("USD")
 
@@ -87,7 +85,8 @@ class CompteViewModel @Inject constructor(
                         uistate.value = uistate.value.copy(
                             isLoading = false,
                             libelle = "",
-                            typeCompte = TYPECOMPTE.RECETTE
+                            typeCompte = TYPECOMPTE.RECETTE,
+                            isAddSheetShown = false
                         )
                         SnackbarManager.showMessage("Compte ajouté avec succès")
 
@@ -116,10 +115,79 @@ class CompteViewModel @Inject constructor(
         uistate.value = uistate.value.copy(isTypeCompteDropMenu = false)
     }
 
+    fun onAddCompteClick() {
+        uistate.value = uistate.value.copy(isAddSheetShown = true)
+    }
+
+    fun onAddCompteDismiss() {
+        uistate.value = uistate.value.copy(isAddSheetShown = false)
+    }
+
+
+    fun onDeleteClick() {
+        uistate.value = uistate.value.copy(isDeleteDialogShown = true)
+    }
+
+
+    fun onDeleDialogDismiss() {
+
+        uistate.value = uistate.value.copy(isDeleteDialogShown = false)
+    }
+
+
+    fun onDelete(compte: Compte) {
+
+
+        viewModelScope.launch {
+
+            compteRepository.delete(compte).collect { result ->
+
+                when (result) {
+
+                    is Result.Loading -> {
+                        uistate.value =
+                            uistate.value.copy(isLoading = true, isDeleteDialogShown = false)
+                    }
+
+                    is Result.Succes -> {
+
+                        uistate.value = uistate.value.copy(isLoading = false)
+                        SnackbarManager.showMessage("Suppression réussit")
+                    }
+
+                    is Result.Error -> {
+
+                        uistate.value = uistate.value.copy(isLoading = false)
+                        SnackbarManager.showMessage("${result.e?.message}")
+                    }
+                }
+
+
+            }
+
+        }
+
+    }
+
+
+    fun onEditClick() {
+
+        uistate.value = uistate.value.copy(isEditSheetShow = true)
+    }
+
+    fun onEditSheetDismiss() {
+
+        uistate.value = uistate.value.copy(isEditSheetShow = false)
+    }
+
+    fun onUpdate(compte: Compte) {
+        uistate.value=uistate.value.copy(updateCompte = compte)
+    }
 
 }
 
 data class CompteUistate(
+    val codeCompte: String = "",
     val devise: String = "",
     val libelle: String = "",
     val typeCompte: TYPECOMPTE = TYPECOMPTE.RECETTE,
@@ -128,7 +196,11 @@ data class CompteUistate(
 
     val comptes: List<Compte> = emptyList(),
     val isComptEmpty: Boolean = false,
-    val isLibeleEmpty: Boolean = false
+    val isLibeleEmpty: Boolean = false,
+    val isAddSheetShown: Boolean = false,
+    val isDeleteDialogShown: Boolean = false,
+    val isEditSheetShow: Boolean = false,
+    val updateCompte: Compte? = null
 )
 
 

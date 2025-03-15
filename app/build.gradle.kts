@@ -70,4 +70,7 @@ dependencies {
     implementation(libs.androidx.hilt.navigation.compose)
 
     implementation(libs.androidx.material.icons.extended.android)
+
+    implementation(libs.compose)
+    implementation(libs.compose.m3)
 }

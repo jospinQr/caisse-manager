@@ -89,6 +89,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.caissemanager.R
 import com.example.caissemanager.domain.model.Caisse
 import com.example.caissemanager.domain.model.Compte
+import com.example.caissemanager.domain.model.TYPECOMPTE
 import com.example.caissemanager.ui.component.MainLoading
 import com.example.caissemanager.ui.screen.compte.CompteViewModel
 import com.example.caissemanager.ui.screen.decaissement.DeCaissementViewmodel
@@ -550,17 +551,18 @@ fun DecaissementScreenContent(
                                         onDismissRequest = { onCompteDropMenuDismiss() }) {
 
 
-                                        state.data?.forEach { compte ->
+                                        state.data?.filter { it.typeCompte == TYPECOMPTE.DEPENSE || it.typeCompte == TYPECOMPTE.BANK }
+                                            ?.forEach { compte ->
 
-                                            DropdownMenuItem(text = { Text(compte.designation) },
-                                                onClick = {
-                                                    onCompteChange(compte.designation)
-                                                    onCompteDropMenuDismiss()
-                                                }
+                                                DropdownMenuItem(text = { Text(compte.designation) },
+                                                    onClick = {
+                                                        onCompteChange(compte.designation)
+                                                        onCompteDropMenuDismiss()
+                                                    }
 
-                                            )
+                                                )
 
-                                        }
+                                            }
 
                                     }
                                 }
@@ -604,7 +606,6 @@ fun DecaissementScreenContent(
 
                 Button(onClick = {
 
-                    onDismiss()
                     onSaveClick()
                 }) {
                     Text("Enregistrer")
@@ -759,7 +760,11 @@ fun DecaissementScreenContent(
                             style = MaterialTheme.typography.bodyMedium
                         )
                         Text(
-                            "Montant: ${caisse.montant} $",
+                            text = if (caisse.devise == "USD") "Montant: ${
+                                NumberFormat.getInstance().format(caisse.montant)
+                            } $" else "Montant: ${
+                                NumberFormat.getInstance().format(caisse.montant)
+                            } Fc",
                             style = MaterialTheme.typography.bodyMedium
                         )
                         Text(
@@ -834,5 +839,8 @@ fun DecaissementScreenContent(
 
             }, confirmButton = {})
     }
+
+
+
 }
 

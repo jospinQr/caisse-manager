@@ -2,14 +2,18 @@ package com.example.caissemanager.data.repository.implementation
 
 import android.util.Log
 import com.example.caissemanager.data.repository.CompteRepository
+import com.example.caissemanager.domain.model.Caisse
 import com.example.caissemanager.domain.model.Compte
 import com.example.caissemanager.utils.Result
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
+import com.google.firebase.firestore.Source
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
@@ -36,10 +40,87 @@ class CompteRepositoryImpl @Inject constructor(val db: FirebaseFirestore) : Comp
 
     }
 
-    override suspend fun delete(compteId: String): Flow<Result<Unit>> = flow { }
+    override suspend fun delete(compte: Compte): Flow<Result<Unit>> = flow {
+        emit(Result.Loading)
+        try {
+
+            if (compte.code.isBlank()) {
+                emit(Result.Error(IllegalArgumentException("Code compte n'est peut pas etre vide")))
+                return@flow
+            }
+
+            val querySnapshot = db.collection("comptes")
+                .whereEqualTo("code", compte.code)
+                .get(Source.DEFAULT).await()// Use DEFAULT to allow cached data in offline mode
 
 
-    override suspend fun update(compteI: String): Flow<Result<Unit>> = flow { }
+            if (querySnapshot.isEmpty) {
+                emit(Result.Error(Exception("Aucun document trouvé avec codeCaisse = ${compte.typeCompte}")))
+                return@flow
+            }
+
+
+            val docRef = querySnapshot.documents[0].reference
+            docRef.delete() // No await() needed for offline support
+                .addOnSuccessListener {
+                }
+                .addOnFailureListener { ex ->
+                    Log.e(TAG, "Delete failed: ${ex.message}", ex)
+                }
+            emit(Result.Succes(Unit))
+
+        } catch (ex: FirebaseFirestoreException) {
+            emit(Result.Error(ex))
+            Log.e(TAG, "FirebaseFirestoreException: ${ex.message}", ex)
+        } catch (ex: Exception) {
+            emit(Result.Error(ex))
+            Log.e(TAG, "Exception: ${ex.message}", ex)
+        }
+    }.flowOn(Dispatchers.IO)
+
+
+    override suspend fun update(compte: Compte): Flow<Result<Unit>> = flow {
+
+        emit(Result.Loading)
+        try {
+
+            if (compte.code.isBlank()) {
+                emit(Result.Error(IllegalArgumentException("Code compte n'est peut pas etre vide")))
+                return@flow
+            }
+
+            val querySnapshot = db.collection("comptes")
+                .whereEqualTo("code", compte.code)
+                .get(Source.DEFAULT) // Use DEFAULT to allow cached data in offline mode
+                .await()
+
+            if (querySnapshot.isEmpty) {
+                emit(Result.Error(Exception("Aucun document trouvé avec code = ${compte.typeCompte}")))
+                return@flow
+            }
+
+
+            val docRef = querySnapshot.documents[0].reference
+            val newCompte = mapOf(
+                "designation" to compte.designation
+            )
+
+            docRef.update(newCompte) // No await() needed for offline support
+                .addOnSuccessListener {
+                }
+                .addOnFailureListener { ex ->
+                    Log.e(TAG, "Delete failed: ${ex.message}", ex)
+                }
+            emit(Result.Succes(Unit))
+
+        } catch (ex: FirebaseFirestoreException) {
+            emit(Result.Error(ex))
+            Log.e(TAG, "FirebaseFirestoreException: ${ex.message}", ex)
+        } catch (ex: Exception) {
+            emit(Result.Error(ex))
+            Log.e(TAG, "Exception: ${ex.message}", ex)
+        }
+    }.flowOn(Dispatchers.IO)
 
     override suspend fun getCompte(compteId: String): Flow<Result<Compte>> = flow { }
     override suspend fun getComptesByType(): Flow<Result<List<Compte>>> {

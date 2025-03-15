@@ -89,6 +89,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.caissemanager.R
 import com.example.caissemanager.domain.model.Caisse
 import com.example.caissemanager.domain.model.Compte
+import com.example.caissemanager.domain.model.TYPECOMPTE
 import com.example.caissemanager.ui.component.MainLoading
 import com.example.caissemanager.ui.screen.compte.CompteViewModel
 import com.example.caissemanager.ui.screen.home.HomeViewModelUiState
@@ -197,32 +198,33 @@ fun EncaissementScreenContent(
 
 
 
-    Scaffold(floatingActionButton = {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    Scaffold(
+        floatingActionButton = {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
 
 
-            FloatingActionButton(
-                onClick = { onTotalShown() },
-                modifier = Modifier
-                    .size(40.dp), // Taille personnalisée pour le petit bouton
-                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                contentColor = MaterialTheme.colorScheme.secondary
-            ) {
-                Icon(Icons.Default.Visibility, contentDescription = "Petit FAB")
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            FloatingActionButton(
-                modifier = Modifier,
-                onClick = {
-                    onAddClick()
+                FloatingActionButton(
+                    onClick = { onTotalShown() },
+                    modifier = Modifier
+                        .size(40.dp), // Taille personnalisée pour le petit bouton
+                    containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                    contentColor = MaterialTheme.colorScheme.secondary
+                ) {
+                    Icon(Icons.Default.Visibility, contentDescription = "Petit FAB")
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                FloatingActionButton(
+                    modifier = Modifier,
+                    onClick = {
+                        onAddClick()
 
-                }) {
-                Icon(
-                    imageVector = Icons.Rounded.Add, contentDescription = null
-                )
+                    }) {
+                    Icon(
+                        imageVector = Icons.Rounded.Add, contentDescription = null
+                    )
+                }
             }
         }
-    }
     ) { innerPadding ->
 
 
@@ -395,7 +397,7 @@ fun EncaissementScreenContent(
                                                     verticalArrangement = Arrangement.Center
                                                 ) {
                                                     Text(
-                                                        caisse.codeCaisse,
+                                                        caisse.codeCaisse.takeLast(10),
                                                         style = MaterialTheme.typography.bodySmall,
                                                         fontWeight = FontWeight.Bold
                                                     )
@@ -548,17 +550,18 @@ fun EncaissementScreenContent(
                                         onDismissRequest = { onCompteDropMenuDismiss() }) {
 
 
-                                        state.data?.forEach { compte ->
+                                        state.data?.filter { it.typeCompte == TYPECOMPTE.RECETTE || it.typeCompte == TYPECOMPTE.BANK }
+                                            ?.forEach { compte ->
 
-                                            DropdownMenuItem(text = { Text(compte.designation) },
-                                                onClick = {
-                                                    onCompteChange(compte.designation)
-                                                    onCompteDropMenuDismiss()
-                                                }
+                                                DropdownMenuItem(text = { Text(compte.designation) },
+                                                    onClick = {
+                                                        onCompteChange(compte.designation)
+                                                        onCompteDropMenuDismiss()
+                                                    }
 
-                                            )
+                                                )
 
-                                        }
+                                            }
 
                                     }
                                 }
@@ -601,8 +604,6 @@ fun EncaissementScreenContent(
 
 
                 Button(onClick = {
-
-                    onDismiss()
                     onSaveClick()
                 }) {
                     Text("Enregistrer")
@@ -757,7 +758,11 @@ fun EncaissementScreenContent(
                             style = MaterialTheme.typography.bodyMedium
                         )
                         Text(
-                            "Montant: ${caisse.montant} $",
+                            text = if (caisse.devise == "USD") "Montant: ${
+                                NumberFormat.getInstance().format(caisse.montant)
+                            } $" else "Montant: ${
+                                NumberFormat.getInstance().format(caisse.montant)
+                            } Fc",
                             style = MaterialTheme.typography.bodyMedium
                         )
                         Text(

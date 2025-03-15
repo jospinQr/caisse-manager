@@ -47,7 +47,7 @@ class EnCaissementViewmodel @Inject constructor(
     init {
 
         getByTypeCaisse()
-        onDeviseChange("USD")
+        onOptionSelected("USD")
 
     }
 
@@ -118,8 +118,8 @@ class EnCaissementViewmodel @Inject constructor(
                             isSavigin = false,
                             montant = "",
                             compte = "",
-                            devise = "",
-                            date = Timestamp.now()
+                            date = Timestamp.now(),
+                            isAddSheetShown = false
                         )
 
                         SnackbarManager.showMessage("Encaissement ajouté avec succès")

@@ -142,26 +142,26 @@ class CaisseRepositoryImpl @Inject constructor(val db: FirebaseFirestore) : Cais
 
     }
 
-    override suspend fun getAllCaisse(): Flow<Result<List<Caisse>>> = flow {
+    override suspend fun getAllCaisse(): Flow<Result<List<Caisse>>> = callbackFlow {
 
-        emit(Result.Loading)
+        trySend(Result.Loading)
+        val listener = db.collection("caisses")
+            .addSnapshotListener { snapshot, error ->
 
-        try {
+                if (error != null) {
+                    trySend(Result.Error(error))
+                    return@addSnapshotListener
+                }
 
-            val snapshot = db.collection("caisses").get().await()
-            val caisses = snapshot.toObjects(Caisse::class.java)
-            emit(Result.Succes(caisses))
-
-        } catch (ex: FirebaseFirestoreException) {
-
-            emit(Result.Error(ex))
-            Log.e(TAG, ex.message.toString())
-        } catch (ex: Exception) {
-            emit(Result.Error(ex))
-            Log.e(TAG, ex.message.toString())
-        }
+                if (snapshot != null) {
+                    val caisses = snapshot.toObjects(Caisse::class.java)
+                    val caisseSortedByDate = caisses.sortedByDescending { it.date }
+                    trySend(Result.Succes(caisseSortedByDate))
+                }
 
 
+            }
+        awaitClose { listener.remove() }
     }
 
     override suspend fun getCaisseByCompte(codeCompte: String): Flow<Result<List<Caisse>>> = flow {

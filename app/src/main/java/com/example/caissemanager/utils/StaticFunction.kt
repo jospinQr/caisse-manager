@@ -24,10 +24,10 @@ class StaticFunction {
             val days = TimeUnit.MILLISECONDS.toDays(diffMillis)
 
             return when {
-                minutes < 60 -> "Il y a $minutes m"
+                minutes < 60 -> "Il y a $minutes min"
                 hours < 24 -> "Il y a $hours h"
-                days < 7 -> "Il y a $days j"
-                days < 30 -> "Il y a ${days / 7} s"
+                days < 7 -> "Il y a $days jours"
+                days < 30 -> "Il y a ${days / 7} sem"
                 days < 365 -> "Il y a ${days / 30} mois"
                 else -> "Il y a ${days / 365} an${if (days / 365 > 1) "s" else ""}"
             }
