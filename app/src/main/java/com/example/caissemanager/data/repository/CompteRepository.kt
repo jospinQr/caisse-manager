@@ -13,7 +13,7 @@ interface CompteRepository {
 
     suspend fun delete(compte: Compte): Flow<Result<Unit>>
 
-    suspend fun update(compte : Compte): Flow<Result<Unit>>
+    suspend fun update(newCompte : Compte): Flow<Result<Unit>>
 
     suspend fun getCompte(compteId: String): Flow<Result<Compte>>
 

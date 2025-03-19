@@ -1,6 +1,5 @@
 package com.example.caissemanager.ui.screen.compte
 
-import android.content.Context
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -10,10 +9,8 @@ import com.example.caissemanager.domain.model.TYPECOMPTE
 import com.example.caissemanager.utils.Result
 import com.example.caissemanager.utils.SnackbarManager
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -21,8 +18,8 @@ import javax.inject.Inject
 @HiltViewModel
 class CompteViewModel @Inject constructor(
     private val compteRepository: CompteRepository,
-    private val context: Context
-) : ViewModel() {
+
+    ) : ViewModel() {
 
 
     val uistate = mutableStateOf(CompteUistate())
@@ -33,22 +30,18 @@ class CompteViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5000), // Arrête après 5s d'inactivité
             initialValue = Result.Loading
         )
-    private val _devise get() = uistate.value.devise
-    private val _libelle get() = uistate.value.libelle
+
+    private val _libelle get() = uistate.value.designation
     private val _typeCompte get() = uistate.value.typeCompte
     private val _updateCompte get() = uistate.value.updateCompte
 
-    private val _selectedOption = MutableStateFlow("USD")
 
-    val selectedOption: StateFlow<String> = _selectedOption.asStateFlow()
-
-    val deviseOptions = listOf("USD", "CDF")
     fun onDeviseChange(string: String) {
         uistate.value = uistate.value.copy(devise = string)
     }
 
-    fun onLibelleChange(libelle: String) {
-        uistate.value = uistate.value.copy(libelle = libelle)
+    fun onDesignationChange(designation: String) {
+        uistate.value = uistate.value.copy(designation = designation)
     }
 
     fun onTypeCompteChange(typeCompte: TYPECOMPTE) {
@@ -56,10 +49,21 @@ class CompteViewModel @Inject constructor(
     }
 
 
-    fun onOptionSelected(option: String) {
-        _selectedOption.value = option
-        onDeviseChange(option)
+    //pour selection le compte à changer
+    fun onUpdateCompteChange(compte: Compte) {
+        uistate.value = uistate.value.copy(updateCompte = compte)
     }
+
+    fun onUpdateDesignationChange(libelle: String) {
+        uistate.value =
+            uistate.value.copy(updateCompte = _updateCompte?.copy(designation = libelle))
+    }
+
+    fun onUpDateTypeCompteChange(typeCompte: TYPECOMPTE) {
+        uistate.value =
+            uistate.value.copy(updateCompte = _updateCompte?.copy(typeCompte = typeCompte))
+    }
+
 
     fun onSaveClick() {
 
@@ -84,7 +88,7 @@ class CompteViewModel @Inject constructor(
                     is Result.Succes -> {
                         uistate.value = uistate.value.copy(
                             isLoading = false,
-                            libelle = "",
+                            designation = "",
                             typeCompte = TYPECOMPTE.RECETTE,
                             isAddSheetShown = false
                         )
@@ -180,8 +184,43 @@ class CompteViewModel @Inject constructor(
         uistate.value = uistate.value.copy(isEditSheetShow = false)
     }
 
-    fun onUpdate(compte: Compte) {
-        uistate.value=uistate.value.copy(updateCompte = compte)
+
+    fun onEdit() {
+
+        viewModelScope.launch {
+
+
+            _updateCompte?.let {
+                compteRepository.update(it).collect { result ->
+
+                    when (result) {
+
+                        is Result.Loading -> {
+                            uistate.value = uistate.value.copy(isLoading = true)
+                        }
+
+                        is Result.Succes -> {
+
+                            uistate.value =
+                                uistate.value.copy(isLoading = false, isEditSheetShow = false)
+                            SnackbarManager.showMessage("Modification reussit")
+                        }
+
+                        is Result.Error -> {
+
+                            uistate.value =
+                                uistate.value.copy(isLoading = false, isEditSheetShow = false)
+                            SnackbarManager.showMessage(result.e?.message.toString())
+                        }
+
+                    }
+
+
+                }
+            }
+
+
+        }
     }
 
 }
@@ -189,7 +228,7 @@ class CompteViewModel @Inject constructor(
 data class CompteUistate(
     val codeCompte: String = "",
     val devise: String = "",
-    val libelle: String = "",
+    val designation: String = "",
     val typeCompte: TYPECOMPTE = TYPECOMPTE.RECETTE,
     val isLoading: Boolean = false,
     val isTypeCompteDropMenu: Boolean = false,

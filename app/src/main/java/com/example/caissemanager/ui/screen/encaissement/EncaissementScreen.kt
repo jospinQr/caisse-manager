@@ -118,10 +118,10 @@ fun EncaissementScreen(
         uistate = uistate,
         onAddClick = { viewModel.onAddClick() },
         onDismiss = { viewModel.onAddSheetDismiss() },
-        onMontantChange = { viewModel.onMontant(it) },
-        onCompteChange = { viewModel.onCompte(it) },
-        onSearValueChange = { viewModel.onSearchValue(it) },
-        onDescriptionChange = { viewModel.onDescription(it) },
+        onMontantChange = { viewModel.onMontantChange(it) },
+        onCompteChange = { viewModel.onCompteChange(it) },
+        onSearValueChange = { viewModel.onSearchValueChange(it) },
+        onDescriptionChange = { viewModel.onDescriptionChange(it) },
         comptes = compteState,
         onCompteClick = { viewModel.onCompteClick() },
         onCompteDropMenuDismiss = { viewModel.onCompteMenuDismiss() },
@@ -191,7 +191,7 @@ fun EncaissementScreenContent(
 
 
     var selectedCaisse by remember { mutableStateOf<Caisse?>(null) }
-    val showDialog by remember { derivedStateOf { selectedCaisse != null } }
+    val showDetailDialog by remember { derivedStateOf { selectedCaisse != null } }
     val dateState = rememberDatePickerState()
     var totalUSD by remember { mutableDoubleStateOf(0.0) }
     var totalCDF by remember { mutableDoubleStateOf(0.0) }
@@ -697,7 +697,7 @@ fun EncaissementScreenContent(
                     onEditSheetDismiss();
 
                 }) {
-                    Text("Mettre à jour")
+                    Text("Modifier")
                 }
             }
         }
@@ -746,7 +746,7 @@ fun EncaissementScreenContent(
         }, dismissButton = {}, confirmButton = {})
     }
 
-    if (showDialog) {
+    if (showDetailDialog) {
         AlertDialog(
             onDismissRequest = { selectedCaisse = null }, // Fermer en cliquant à l'extérieur
             title = { Text("Détails de la caisse") },

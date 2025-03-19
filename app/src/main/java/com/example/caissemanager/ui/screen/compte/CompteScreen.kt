@@ -67,7 +67,7 @@ fun CompteScreen(
 
         uistate = viewModel.uistate.value,
         onCodeCompteChange = viewModel::onDeviseChange,
-        onlibelleChange = viewModel::onLibelleChange,
+        onlibelleChange = viewModel::onDesignationChange,
         onSave = viewModel::onSaveClick,
         onBack = { onBack() },
         onTypeCompteChange = viewModel::onTypeCompteChange,
@@ -80,7 +80,11 @@ fun CompteScreen(
         onEditClick = viewModel::onEditClick,
         onDelete = { viewModel.onDelete(it) },
         onDeleAlertDialogDismiss = viewModel::onDeleDialogDismiss,
-        onEditSheetDismiss = viewModel::onEditSheetDismiss
+        onEditSheetDismiss = viewModel::onEditSheetDismiss,
+        onUpdateCompteChange = viewModel::onUpdateCompteChange,
+        onEdit = viewModel::onEdit,
+        onUpdateDesignationChange = viewModel::onUpdateDesignationChange,
+        onUpdateTypeChange = viewModel::onUpDateTypeCompteChange
     )
 }
 
@@ -103,9 +107,12 @@ fun CompteScreenContent(
     onDelete: (Compte) -> Unit,
     onDeleAlertDialogDismiss: () -> Unit,
     onEditSheetDismiss: () -> Unit,
+    onUpdateCompteChange: (Compte) -> Unit,
+    onEdit: () -> Unit,
+    onUpdateDesignationChange: (String) -> Unit,
+    onUpdateTypeChange: (TYPECOMPTE) -> Unit
 
-
-    ) {
+) {
 
 
     var selectedCompte by remember { mutableStateOf<Compte?>(null) }
@@ -174,7 +181,10 @@ fun CompteScreenContent(
                                     .fillMaxWidth()
                                     .clickable {
                                         selectedCompte = it
-                                    }.padding(12.dp), horizontalArrangement = Arrangement.SpaceBetween
+                                        onUpdateCompteChange(it)
+                                    }
+                                    .padding(12.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween
 
                             ) {
                                 Column {
@@ -231,7 +241,7 @@ fun CompteScreenContent(
 
 
                 OutlinedTextField(
-                    value = uistate.libelle,
+                    value = uistate.designation,
                     onValueChange = { onlibelleChange(it) },
                     label = { Text("Nom du compte") },
                     leadingIcon = { Icon(Icons.Rounded.Abc, contentDescription = null) },
@@ -304,11 +314,11 @@ fun CompteScreenContent(
             ) {
 
 
-                Text(text = uistate.codeCompte)
+                Text(text = uistate.updateCompte?.code!!)
 
                 OutlinedTextField(
-                    value = uistate.libelle,
-                    onValueChange = { onlibelleChange(it) },
+                    value = uistate.updateCompte.designation,
+                    onValueChange = { onUpdateDesignationChange(it) },
                     label = { Text("Nom du compte") },
                     leadingIcon = { Icon(Icons.Rounded.Abc, contentDescription = null) },
                     isError = uistate.isLibeleEmpty,
@@ -325,7 +335,7 @@ fun CompteScreenContent(
                     )
 
                 Spacer(Modifier.height(18.dp))
-                OutlinedTextField(value = uistate.typeCompte.name,
+                OutlinedTextField(value = uistate.updateCompte.typeCompte.name,
                     onValueChange = { },
                     label = { Text("Type de compte") },
                     trailingIcon = {
@@ -345,7 +355,7 @@ fun CompteScreenContent(
                                 TYPECOMPTE.entries.forEach { typeCompte ->
 
                                     DropdownMenuItem(text = { Text(typeCompte.name) }, onClick = {
-                                        onTypeCompteChange(typeCompte)
+                                        onUpdateTypeChange(typeCompte)
                                         onTypeCompteDropMenuDismiss()
                                     }
 
@@ -360,7 +370,10 @@ fun CompteScreenContent(
 
 
                 Spacer(Modifier.height(24.dp))
-                Button(onClick = { onSave() }) { Text("Modifier") }
+                Button(onClick = {
+                    onEdit()
+                    selectedCompte = null
+                }) { Text("Modifier") }
             }
         }
 

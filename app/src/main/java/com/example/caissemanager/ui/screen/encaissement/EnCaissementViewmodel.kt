@@ -34,10 +34,17 @@ class EnCaissementViewmodel @Inject constructor(
     private val _montant get() = uistate.value.montant
     private val _compte get() = uistate.value.compte
     private val _description get() = uistate.value.description
-    private val _searchValue get() = uistate.value.searchValue
-    private val _typeCaisse get() = uistate.value.typeCaisse
     private val _date get() = uistate.value.date
     private val _devise get() = uistate.value.devise
+
+
+    //for update
+    private val _upDateCaisse get() = uistate.value.upDateCaisse
+    private val _updateMontant get() = uistate.value.upDateMontant
+    private val _updateCompte get() = uistate.value.upDateCompte
+    private val _updateDescription get() = uistate.value.upDateDescription
+    private val _updateDate get() = uistate.value.upDateDate
+    private val _upDateDevise get() = uistate.value.upDateDevise
 
     private val _selectedDevise = MutableStateFlow("USD")
     val selecteDevise: StateFlow<String> = _selectedDevise.asStateFlow()
@@ -52,11 +59,11 @@ class EnCaissementViewmodel @Inject constructor(
     }
 
 
-    fun onMontant(montant: String) {
+    fun onMontantChange(montant: String) {
         uistate.value = uistate.value.copy(montant = montant, isMontaEmpy = false)
     }
 
-    fun onCompte(compte: String) {
+    fun onCompteChange(compte: String) {
         uistate.value = uistate.value.copy(compte = compte, isCompteEmpty = false)
     }
 
@@ -65,12 +72,41 @@ class EnCaissementViewmodel @Inject constructor(
         uistate.value = uistate.value.copy(date = date)
     }
 
-    fun onSearchValue(searchValue: String) {
+    fun onSearchValueChange(searchValue: String) {
         uistate.value = uistate.value.copy(searchValue = searchValue)
     }
 
-    fun onDescription(description: String) {
+    fun onDescriptionChange(description: String) {
         uistate.value = uistate.value.copy(description = description)
+    }
+
+
+    //for update
+
+    fun onUpdateCaisseChange(caisse: Caisse) {
+        uistate.value = uistate.value.copy(upDateCaisse = caisse)
+    }
+
+    fun onUpdateMontantChange(montant: Double) {
+        uistate.value = uistate.value.copy(upDateCaisse = _upDateCaisse.copy(montant = montant))
+    }
+
+    fun onUpdateCompte(compte: String) {
+        uistate.value = uistate.value.copy(upDateCaisse = _upDateCaisse.copy(compte = compte))
+    }
+
+    fun onUpateDateChange(date: Timestamp) {
+
+        uistate.value = uistate.value.copy(upDateCaisse = _upDateCaisse.copy(date = date))
+    }
+
+    fun onUpDeviseChange(devise: String) {
+        uistate.value = uistate.value.copy(upDateCaisse = _upDateCaisse.copy(devise = devise))
+    }
+
+    fun onUpdateDescriptionChange(description: String) {
+        uistate.value =
+            uistate.value.copy(upDateCaisse = _upDateCaisse.copy(descriptionCaisse = description))
     }
 
 
@@ -279,5 +315,15 @@ data class EncaissementUiState(
     val isEditSheetShown: Boolean = false,
     val isDatePickerShown: Boolean = false,
     val devise: String = "USD",
-    val isTotalShown: Boolean = false
+    val isTotalShown: Boolean = false,
+
+
+    //for update
+    val upDateCaisse: Caisse = Caisse(),
+    val upDateMontant: String = "",
+    val upDateCompte: String = "",
+    val upDateDescription: String = "",
+    val upDateTypeCaisse: String = "",
+    val upDateDate: Timestamp = Timestamp.now(),
+    val upDateDevise: String = ""
 )

@@ -41,26 +41,45 @@ class CaisseRepositoryImpl @Inject constructor(val db: FirebaseFirestore) : Cais
 
     }
 
-    override suspend fun update(caisse: Caisse): Flow<Result<Unit>> = flow {
+    override suspend fun update(newCaisse: Caisse): Flow<Result<Unit>> = flow {
         emit(Result.Loading)
         try {
-            // Rechercher le document par un champ unique (ex: codeCaisse)
-            val querySnapshot = db.collection("caisses")
-                .whereEqualTo("codeCaisse", caisse.codeCaisse)
-                .get()
-                .await()
 
-            // Vérifier si un document correspond
-            if (querySnapshot.isEmpty) {
-                emit(Result.Error(Exception("Aucun document trouvé avec codeCaisse = ${caisse.codeCaisse}")))
+            if (newCaisse.codeCaisse.isBlank()) {
+                emit(Result.Error(IllegalArgumentException(" Le Code n'est peut pas etre vide")))
                 return@flow
             }
 
-            // Récupérer la référence du document (ID auto-généré)
-            val docRef = querySnapshot.documents[0].reference
-            docRef.set(caisse).await()
+            val querySnapshot = db.collection("caisses")
+                .whereEqualTo("codeCaisse", newCaisse.codeCaisse)
+                .get(Source.DEFAULT)
+                .await()
 
+            if (querySnapshot.isEmpty) {
+                emit(Result.Error(Exception("Aucun document trouvé avec code ${newCaisse.codeCaisse}")))
+                return@flow
+            }
+
+
+            val docRef = querySnapshot.documents[0].reference
+            val newCompte = mapOf(
+
+                "montanta" to newCaisse.montant,
+                "compte" to newCaisse.compte,
+                "descriptionCaisse" to newCaisse.descriptionCaisse,
+                "devise" to  newCaisse.devise,
+                "date" to newCaisse.date,
+            )
+
+            docRef.update(newCompte)
+                .addOnSuccessListener {
+                    Log.i(TAG, "Update succus")
+                }
+                .addOnFailureListener { ex ->
+                    Log.e(TAG, "Update failed: ${ex.message}", ex)
+                }
             emit(Result.Succes(Unit))
+
         } catch (ex: FirebaseFirestoreException) {
             emit(Result.Error(ex))
             Log.e(TAG, "FirebaseFirestoreException: ${ex.message}", ex)

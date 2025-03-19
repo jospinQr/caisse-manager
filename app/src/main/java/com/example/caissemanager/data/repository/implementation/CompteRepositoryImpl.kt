@@ -2,7 +2,6 @@ package com.example.caissemanager.data.repository.implementation
 
 import android.util.Log
 import com.example.caissemanager.data.repository.CompteRepository
-import com.example.caissemanager.domain.model.Caisse
 import com.example.caissemanager.domain.model.Compte
 import com.example.caissemanager.utils.Result
 import com.google.firebase.firestore.FirebaseFirestore
@@ -79,37 +78,39 @@ class CompteRepositoryImpl @Inject constructor(val db: FirebaseFirestore) : Comp
     }.flowOn(Dispatchers.IO)
 
 
-    override suspend fun update(compte: Compte): Flow<Result<Unit>> = flow {
+    override suspend fun update(newCompte: Compte): Flow<Result<Unit>> = flow {
 
         emit(Result.Loading)
         try {
 
-            if (compte.code.isBlank()) {
+            if (newCompte.code.isBlank()) {
                 emit(Result.Error(IllegalArgumentException("Code compte n'est peut pas etre vide")))
                 return@flow
             }
 
             val querySnapshot = db.collection("comptes")
-                .whereEqualTo("code", compte.code)
-                .get(Source.DEFAULT) // Use DEFAULT to allow cached data in offline mode
+                .whereEqualTo("code", newCompte.code)
+                .get(Source.DEFAULT)
                 .await()
 
             if (querySnapshot.isEmpty) {
-                emit(Result.Error(Exception("Aucun document trouvé avec code = ${compte.typeCompte}")))
+                emit(Result.Error(Exception("Aucun document trouvé avec code = ${newCompte.typeCompte}")))
                 return@flow
             }
 
 
             val docRef = querySnapshot.documents[0].reference
             val newCompte = mapOf(
-                "designation" to compte.designation
+                "designation" to newCompte.designation,
+                "typeCompte" to newCompte.typeCompte
             )
 
-            docRef.update(newCompte) // No await() needed for offline support
+            docRef.update(newCompte)
                 .addOnSuccessListener {
+                    Log.i(TAG, "Update succus")
                 }
                 .addOnFailureListener { ex ->
-                    Log.e(TAG, "Delete failed: ${ex.message}", ex)
+                    Log.e(TAG, "Update failed: ${ex.message}", ex)
                 }
             emit(Result.Succes(Unit))
 

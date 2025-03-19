@@ -10,7 +10,7 @@ interface CaisseRepository {
 
     suspend fun save(caisse: Caisse): Flow<Result<Unit>>
 
-    suspend fun update(codeCaisse: Caisse): Flow<Result<Unit>>
+    suspend fun update(newCaisse: Caisse): Flow<Result<Unit>>
 
     suspend fun delete(caisse: Caisse): Flow<Result<Unit>>
 
